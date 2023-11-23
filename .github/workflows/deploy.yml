@@ -1,5 +1,8 @@
 name: Deploy to EC2
-on: [push]
+on:
+  push:
+    branches:
+      - deploy # 브랜치명
 jobs:
 
   build:
