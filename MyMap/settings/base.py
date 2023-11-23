@@ -16,8 +16,9 @@ import environ
 from datetime import timedelta
 
 # AUTH_USER_MODEL = 'accounts.User'
-import pymysql  
-pymysql.install_as_MySQLdb()
+# 맥북
+# import pymysql  
+# pymysql.install_as_MySQLdb()
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 env = environ.Env(
