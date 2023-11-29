@@ -15,7 +15,7 @@ import os
 import environ
 from datetime import timedelta
 
-# AUTH_USER_MODEL = 'accounts.User'
+AUTH_USER_MODEL = 'accounts.User'
 # 맥북
 # import pymysql  
 # pymysql.install_as_MySQLdb()
@@ -29,14 +29,13 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
-
-
 # SECURITY WARNING: don't run with debug turned on in production!
 
 SECRET_KEY = env('DJANGO_SECRET_KEY')
 DEBUG = env('DEBUG')
+KAKAO_CLIENT_ID= env('KAKAO_CLIENT_ID')
+KAKAO_APP_ID=env('KAKAO_APP_ID')
+KAKAO_CLIENT_SECRET_KEY=env('KAKAO_CLIENT_SECRET_KEY')
 
 ALLOWED_HOSTS = ['*']
 
@@ -51,12 +50,35 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "rest_framework",
+
+    'corsheaders',
+
+    # django-rest-auth
+    'rest_framework',
+    'rest_framework.authtoken',
+    'rest_auth',
+
+    # django-allauth
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'rest_auth.registration',
+    # providers(카카오가 아니어도, 네이버, 구글, 페이스북 가능)
+    'allauth.socialaccount.providers.kakao',  
+
     "rest_framework_simplejwt",
+
     "accounts",
     "recom",
-    "map"
+    "map",
+
+    
+
 ]
+
+SITE_ID = 1
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -69,7 +91,7 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': True,
     'AUTH_HEADER_TYPES': ('Bearer',),
-    'TOKEN_USER_CLASS': 'account.User',
+    'TOKEN_USER_CLASS': 'accounts.User',
 }
 
 MIDDLEWARE = [
@@ -80,6 +102,31 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # 'allauth.account.middleware.AccountMiddleware', # 추가
+    # 'corsheaders.middleware.CorsMiddleware'
+]
+
+# cors 
+CORS_ORIGIN_ALLOW_ALL=True
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = ( 
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+)
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
 ]
 
 ROOT_URLCONF = "MyMap.urls"
