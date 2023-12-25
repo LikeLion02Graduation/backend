@@ -1,33 +1,23 @@
-# BUILDER #
-###########
-
-# pull official base image
-FROM python:3.8.3-alpine as builder
+# BUILDER
+FROM python:3.8.3-slim-buster as builder
 
 # set work directory
 WORKDIR /usr/src/app
-
 
 # set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-# install psycopg2 dependencies
-RUN apk update && apk add python3 python3-dev mariadb-dev build-base && pip3 install mysqlclient && apk del python3-dev mariadb-dev build-base
-
-
 # install dependencies
 COPY ./requirements.txt .
-RUN pip wheel --no-cache-dir --no-deps --wheel-dir /usr/src/app/wheels -r requirements.txt
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends build-essential libmariadb-dev-compat libmariadb-dev \
+    && pip install --no-cache-dir --upgrade pip \
+    && pip wheel --no-cache-dir --no-deps --wheel-dir /usr/src/app/wheels -r requirements.txt \
+    && apt-get purge -y --auto-remove build-essential
 
-
-
-#########
-# FINAL #
-#########
-
-# pull official base image
-FROM python:3.8.3-alpine
+# FINAL
+FROM python:3.8.3-slim-buster
 
 # create directory for the app user
 RUN mkdir -p /home/app
@@ -44,21 +34,16 @@ RUN mkdir $APP_HOME/media
 WORKDIR $APP_HOME
 
 # install dependencies
-RUN apk update && apk add libpq
-RUN apk update \
-    && apk add --virtual build-deps gcc python3-dev musl-dev \
-    && apk add --no-cache mariadb-dev
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libmariadb-dev \
+    && pip install --no-cache-dir --upgrade pip \
+    && apt-get purge -y --auto-remove libmariadb-dev
+
 COPY --from=builder /usr/src/app/wheels /wheels
 COPY --from=builder /usr/src/app/requirements.txt .
-RUN pip install mysqlclient
 RUN pip install --no-cache /wheels/*
-RUN apk del build-deps
-
-# copy entrypoint-prod.sh
-COPY ./config/docker/entrypoint.prod.sh $APP_HOME
-
-# copy project
 COPY . $APP_HOME
+COPY ./config/docker/entrypoint.prod.sh $APP_HOME
 
 # chown all the files to the app user
 RUN chown -R app:app $APP_HOME
