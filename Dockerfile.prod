@@ -9,8 +9,8 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 # install dependencies
-COPY ./requirements.txt .
 RUN apt-get update \
+    && apt-get install -y --no-install-recommends apt-utils \
     && apt-get install -y --no-install-recommends build-essential libmariadb-dev-compat libmariadb-dev \
     && pip install --no-cache-dir --upgrade pip \
     && pip wheel --no-cache-dir --no-deps --wheel-dir /usr/src/app/wheels -r requirements.txt \
@@ -35,7 +35,7 @@ WORKDIR $APP_HOME
 
 # install dependencies
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends libmariadb-dev \
+    && apt-get install -y --no-install-recommends apt-utils libmariadb-dev \
     && pip install --no-cache-dir --upgrade pip \
     && apt-get purge -y --auto-remove libmariadb-dev
 
