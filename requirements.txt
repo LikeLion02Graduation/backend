@@ -14,5 +14,5 @@ django-cors-headers
 djangorestframework
 djangorestframework-simplejwt
 django-rest-auth
-# django-allauth==0.43.0
-django-allauth
+django-allauth==0.43.0
+# django-allauth
