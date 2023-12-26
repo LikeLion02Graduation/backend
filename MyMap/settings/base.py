@@ -102,7 +102,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    'allauth.account.middleware.AccountMiddleware', # 추가
+    # 'allauth.account.middleware.AccountMiddleware', # 추가
     'corsheaders.middleware.CorsMiddleware'
 ]
 
