@@ -30,3 +30,23 @@ class MapSerializer(serializers.ModelSerializer):
     class Meta:
         model=Map
         fields = ['user','name','location','hashtag','img','description','buyers','created_at']
+
+class MapListSerializer(serializers.ModelSerializer):
+    hashtag=HashtagNameSerializer(many=True)
+    recommend_num = serializers.SerializerMethodField()
+    react_num = serializers.SerializerMethodField()
+    class Meta:
+        model=Map
+        fields = ['id','user','name','location','hashtag','img','description','created_at','recommend_num','react_num']
+    def get_recommend_num(self, obj):
+        mapID=obj.id
+        recommendsNum = Recommend.objects.filter(map=mapID).count()
+        return recommendsNum
+    def get_react_num(self, obj):
+        mapID = obj.id
+        count=0
+        recommends = Recommend.objects.filter(map=mapID)
+        for recommend in recommends:
+            recomID=recommend.id
+            count+=React.objects.filter(recommend=recomID).count()
+        return count
