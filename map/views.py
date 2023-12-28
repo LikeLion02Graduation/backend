@@ -34,4 +34,16 @@ class MapView(views.APIView):
         serializer = MapListSerializer(maps, many=True)
         return Response({'message':'내 지도 list 조회 성공','data':serializer.data},status=status.HTTP_200_OK)
 
-
+class MyBuyMapView(views.APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self,request):
+        order= request.GET.get('order')
+        user=request.user
+        all_maps = Map.objects.all()
+        maps_list = all_maps.filter(buyers=user.pk)
+        if order=="추천순":
+            maps = maps_list.annotate(recommend_count=Count('recom_map')).order_by('-recommend_count')
+        else:
+            maps = maps_list.order_by('-created_at')
+        serializer = MapListSerializer(maps, many=True)
+        return Response({'message':'구매한 지도 list 조회 성공','data':serializer.data},status=status.HTTP_200_OK)
