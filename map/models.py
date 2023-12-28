@@ -1,8 +1,10 @@
 from django.db import models
 from accounts.models import *
+from django.utils.timezone import now
 
 class TimeStamp(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=now)
+    # created_at = models.DateTimeField(auto_now_add=True)
     # updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -18,12 +20,12 @@ class Map(TimeStamp):
     user = models.ForeignKey(User, related_name='map_user',on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     location = models.CharField(max_length=20)
-    hashtag = models.ManyToManyField(Hashtag,related_name='map_hashtag')
-    image =  models.TextField()
+    hashtag = models.ManyToManyField(Hashtag,related_name='map_hashtag',blank=True)
+    img =  models.TextField()
     description = models.TextField()
-    buyers = models.ManyToManyField(User,related_name='buyers')
+    buyers = models.ManyToManyField(User,related_name='buyers',blank=True)
     def __str__(self):
-        return self.name+" - "+self.user.nickname
+        return str(self.id)+" "+self.name+" - "+self.user.nickname
 
 class Place(models.Model):
     name = models.CharField(max_length=100)
@@ -37,7 +39,7 @@ class Recommend(TimeStamp):
     place = models.ManyToManyField(Place,related_name='recom_place')
     title = models.CharField(max_length=100)
     content = models.TextField()
-    hashtag = models.ManyToManyField(Hashtag,related_name='recom_hashtag')
+    hashtag = models.ManyToManyField(Hashtag,related_name='recom_hashtag',blank=True)
     map = models.ForeignKey(Map, related_name='recom_map',on_delete=models.CASCADE)
 
 class React(TimeStamp):

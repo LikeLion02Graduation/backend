@@ -29,7 +29,7 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('name', models.CharField(max_length=100)),
                 ('location', models.CharField(max_length=20)),
-                ('image', models.TextField()),
+                ('img', models.TextField()),
                 ('description', models.TextField()),
                 ('buyers', models.ManyToManyField(related_name='buyers', to=settings.AUTH_USER_MODEL)),
                 ('hashtag', models.ManyToManyField(related_name='map_hashtag', to='map.Hashtag')),
