@@ -33,6 +33,27 @@ class MapView(views.APIView):
             maps = Map.objects.filter(user=userID).order_by('-created_at')
         serializer = MapListSerializer(maps, many=True)
         return Response({'message':'내 지도 list 조회 성공','data':serializer.data},status=status.HTTP_200_OK)
+    def patch(self,request):
+        # request.data['user'] = request.user.id
+        # if 'hashtag' in request.data:
+        #     hashtags = request.data['hashtag']
+        # request=request.data
+        # request.pop('hashtag')
+        # serializer = MapCreateSerializer(data=request)
+        mapid = request.data['id']
+        map = get_object_or_404(Map, id=mapid)
+        for key, value in request.data.items():
+            if key == "hashtag":
+                map.hashtag.clear()
+                for hashtag in value:
+                    hashtagID = get_object_or_404(Hashtag, tagname=hashtag).id
+                    map.hashtag.add(hashtagID)
+            else:
+                setattr(map, key, value)
+        map.save()
+        serializer = MapCreateSerializer(map)
+        return Response({'message':'내 지도 수정 성공','data':serializer.data},status=status.HTTP_200_OK)
+
 
 class MyBuyMapView(views.APIView):
     permission_classes = [IsAuthenticated]

@@ -27,6 +27,7 @@ class MapSerializer(serializers.ModelSerializer):
     user=UserSerializer()
     hashtag=HashtagNameSerializer(many=True)
     buyers=UserSerializer(many=True)
+    created_at = serializers.DateTimeField(format="%Y-%m-%d %H:%M")
     class Meta:
         model=Map
         fields = ['user','name','location','hashtag','img','description','buyers','created_at']
@@ -51,3 +52,21 @@ class MapListSerializer(serializers.ModelSerializer):
             recomID=recommend.id
             count+=React.objects.filter(recommend=recomID).count()
         return count
+    
+class MapPatchSerializer(serializers.ModelSerializer):
+    hashtag = HashtagNameSerializer(many=True)
+
+    class Meta:
+        model = Map
+        fields = ['id', 'name', 'location', 'img', 'description', 'hashtag']
+
+    def create(self, validated_data):
+        hashtag_data = validated_data.pop('hashtag', [])
+        map_instance = Map.objects.create(**validated_data)
+
+        for hashtag in hashtag_data:
+            tagname = hashtag.get('tagname')
+            hashtag_obj, created = Hashtag.objects.get_or_create(tagname=tagname)
+            map_instance.hashtag.add(hashtag_obj)
+
+        return map_instance
