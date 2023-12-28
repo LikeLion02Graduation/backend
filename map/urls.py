@@ -9,4 +9,5 @@ urlpatterns = [
     path('edit/',MapPatchView.as_view()),
     path('others/',MyBuyMapView.as_view()),
     path('detail/<int:pk>/',MapDetailView.as_view()),
+    path('newtag/',NewTagView.as_view()),
 ]

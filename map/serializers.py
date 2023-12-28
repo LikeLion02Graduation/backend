@@ -18,6 +18,11 @@ class HashtagNameSerializer(serializers.ModelSerializer):
         model=Hashtag
         fields = ['tagname']
 
+class HashtagCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Hashtag
+        fields = '__all__'
+
 class HashtagNameSerializer(serializers.ModelSerializer):
     class Meta:
         model=Hashtag

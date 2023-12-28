@@ -74,3 +74,16 @@ class MapDetailView(views.APIView):
         map = get_object_or_404(Map,id=pk)
         serializers = MapDetailSerializer(map,context={'request': request})
         return Response({'message':"내 지도 조회 성공",'data':serializers.data},status=status.HTTP_200_OK)
+    
+class NewTagView(views.APIView):
+    def post(self,request):
+        tagname=request.data['tagname']
+        data={
+            "tagname":tagname,
+            "enable":False
+        }
+        serializers = HashtagCreateSerializer(data=data)
+        if serializers.is_valid():
+            serializers.save()
+            return Response({'message':'해시태그 생성 요청 성공','data':serializers.data}, status=status.HTTP_201_CREATED)
+        return Response({'message':'해시태그 생성 요청 실패','error':serializers.errors},status=status.HTTP_400_BAD_REQUEST)
