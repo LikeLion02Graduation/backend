@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from .serializers import *
 from django.db.models import Count
+from .permissions import *
 # Create your views here.
 
 class MapView(views.APIView):
@@ -33,15 +34,13 @@ class MapView(views.APIView):
             maps = Map.objects.filter(user=userID).order_by('-created_at')
         serializer = MapListSerializer(maps, many=True)
         return Response({'message':'내 지도 list 조회 성공','data':serializer.data},status=status.HTTP_200_OK)
+    
+class MapPatchView(views.APIView):
+    permission_classes = [IsOwner]
     def patch(self,request):
-        # request.data['user'] = request.user.id
-        # if 'hashtag' in request.data:
-        #     hashtags = request.data['hashtag']
-        # request=request.data
-        # request.pop('hashtag')
-        # serializer = MapCreateSerializer(data=request)
         mapid = request.data['id']
         map = get_object_or_404(Map, id=mapid)
+        self.check_object_permissions(self.request, map)
         for key, value in request.data.items():
             if key == "hashtag":
                 map.hashtag.clear()
@@ -68,3 +67,10 @@ class MyBuyMapView(views.APIView):
             maps = maps_list.order_by('-created_at')
         serializer = MapListSerializer(maps, many=True)
         return Response({'message':'구매한 지도 list 조회 성공','data':serializer.data},status=status.HTTP_200_OK)
+
+class MapDetailView(views.APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self,request,pk):
+        map = get_object_or_404(Map,id=pk)
+        serializers = MapDetailSerializer(map,context={'request': request})
+        return Response({'message':"내 지도 조회 성공",'data':serializers.data},status=status.HTTP_200_OK)

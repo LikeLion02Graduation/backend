@@ -25,7 +25,7 @@ class Map(TimeStamp):
     description = models.TextField()
     buyers = models.ManyToManyField(User,related_name='buyers',blank=True)
     def __str__(self):
-        return self.name+" - "+self.user.nickname
+        return str(self.id)+" "+self.name+" - "+self.user.nickname
 
 class Place(models.Model):
     name = models.CharField(max_length=100)

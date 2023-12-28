@@ -23,20 +23,22 @@ class HashtagNameSerializer(serializers.ModelSerializer):
         model=Hashtag
         fields = ['tagname']
 
-class MapSerializer(serializers.ModelSerializer):
+class RecommendSimpleSerializer(serializers.ModelSerializer):
     user=UserSerializer()
-    hashtag=HashtagNameSerializer(many=True)
-    buyers=UserSerializer(many=True)
-    created_at = serializers.DateTimeField(format="%Y-%m-%d %H:%M")
+    mine = serializers.SerializerMethodField()
     class Meta:
-        model=Map
-        fields = ['user','name','location','hashtag','img','description','buyers','created_at']
+        model=Hashtag
+        fields = ['id','user','mine']
+    def get_mine(self, obj):
+        request = self.context.get('request')
+        if obj.user == request.user:
+            return True
+        return False
 
 class MapListSerializer(serializers.ModelSerializer):
     hashtag=HashtagNameSerializer(many=True)
     recommend_num = serializers.SerializerMethodField()
     react_num = serializers.SerializerMethodField()
-    created_at = serializers.DateTimeField(format="%Y-%m-%d %H:%M")
     class Meta:
         model=Map
         fields = ['id','user','name','location','hashtag','img','description','created_at','recommend_num','react_num']
@@ -63,10 +65,44 @@ class MapPatchSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         hashtag_data = validated_data.pop('hashtag', [])
         map_instance = Map.objects.create(**validated_data)
-
         for hashtag in hashtag_data:
             tagname = hashtag.get('tagname')
-            hashtag_obj, created = Hashtag.objects.get_or_create(tagname=tagname)
+            hashtag_obj = get_object_or_404(Hashtag,tagname=tagname)
             map_instance.hashtag.add(hashtag_obj)
 
         return map_instance
+    
+class MapDetailSerializer(serializers.ModelSerializer):
+    user=UserSerializer()
+    hashtag=HashtagNameSerializer(many=True)
+    buyers=UserSerializer(many=True)
+    map_mine = serializers.SerializerMethodField()
+    do_buy = serializers.SerializerMethodField()
+    recommend_num = serializers.SerializerMethodField()
+    recommend = RecommendSimpleSerializer(many=True, source='recom_map')
+    class Meta:
+        model=Map
+        fields = ['id','name','location','hashtag','img','description','created_at','buyers','user','map_mine','do_buy','recommend_num','recommend']
+    def get_map_mine(self, obj):
+        request = self.context.get('request')
+        if obj.user == request.user:
+            return True
+        return False
+    def get_do_buy(self, obj):
+        request = self.context.get('request')
+        return request.user in obj.buyers.all()
+    def get_recommend_num(self, obj):
+        mapID=obj.id
+        recommendsNum = Recommend.objects.filter(map=mapID).count()
+        return recommendsNum
+    def get_react_num(self, obj):
+        mapID = obj.id
+        count=0
+        recommends = Recommend.objects.filter(map=mapID)
+        for recommend in recommends:
+            recomID=recommend.id
+            count+=React.objects.filter(recommend=recomID).count()
+        return count
+    def get_recommend(self, obj):
+        request = self.context.get('request')
+        return RecommendSimpleSerializer(many=True, source='recom_map', context={'request': request})
