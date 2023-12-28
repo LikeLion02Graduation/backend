@@ -5,4 +5,5 @@ from .views import *
 app_name='map'      
 
 urlpatterns = [
+    path('', CreateMapView.as_view()),
 ]
