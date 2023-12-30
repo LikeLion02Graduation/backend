@@ -9,6 +9,7 @@ import requests
 from .models import *
 from .serializers import *
 import json
+from rest_framework.permissions import IsAuthenticated
 
 
 from rest_auth.registration.views import SocialLoginView                   
@@ -128,3 +129,35 @@ class KakaoCallbackView(views.APIView):
 #     adapter_class = KakaoOAuth2Adapter
 #     callback_url = KAKAO_CONFIG['KAKAO_REDIRECT_URI']
 #     client_class = OAuth2Client
+        
+class SignUpView(views.APIView):
+    def post(self,request):
+        serializer=SignUpSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()               
+            return Response({'message':'회원가입 성공','data':serializer.data}, status=status.HTTP_201_CREATED)
+        return Response({'message':'회원가입 실패','error':serializer.errors},status=status.HTTP_400_BAD_REQUEST)
+
+    
+class LoginView(views.APIView):
+    def post(self, request):
+        serializer = UserLoginSerializer(data=request.data)
+        if serializer.is_valid():
+            return Response({'message': "로그인 성공", 'data': serializer.validated_data}, status=status.HTTP_200_OK)
+        return Response({'message': "로그인 실패", 'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+       
+class MyProfileView(views.APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        serializer = UserProfileSerializer(request.user)
+        return Response({'message': '카카오 로그인 완료, 이름 바꾸기 페이지', 'data': serializer.data}, status=status.HTTP_200_OK)
+    def patch(self, request):
+        serializer = UserProfileSimpleSerializer(request.user, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message': '정보 변경 성공', 'data': serializer.data}, status=status.HTTP_200_OK)
+        return Response({'message': '유효하지 않은 데이터입니다.', 'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+    
+

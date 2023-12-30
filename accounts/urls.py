@@ -7,4 +7,8 @@ app_name='accounts'
 urlpatterns = [
     path('kakao/', KakaoLoginView.as_view()),
     path('kakao/callback/',KakaoCallbackView.as_view()),
+    path('signup/',SignUpView.as_view()),
+    path('signin/',LoginView.as_view()),
+    path('kakao/edit/',MyProfileView.as_view())
+    
 ]
