@@ -3,6 +3,7 @@ from rest_framework import views
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny
 from .serializers import *
 from django.db.models import Count
 from .permissions import *
@@ -27,9 +28,11 @@ class MapView(views.APIView):
     def get(self,request):
         order= request.GET.get('order')
         userID=request.user.id
-        if order=="추천순":
-            maps_list = Map.objects.filter(user=userID)
-            maps = maps_list.annotate(recommend_count=Count('recom_map')).order_by('-recommend_count')
+        if order=="오래된순":
+            maps = Map.objects.filter(user=userID).order_by('created_at')
+            # 추천순
+            # maps_list = Map.objects.filter(user=userID)
+            # maps = maps_list.annotate(recommend_count=Count('recom_map')).order_by('-recommend_count')
         else:
             maps = Map.objects.filter(user=userID).order_by('-created_at')
         serializer = MapListSerializer(maps, many=True)
@@ -69,7 +72,7 @@ class MyBuyMapView(views.APIView):
         return Response({'message':'구매한 지도 list 조회 성공','data':serializer.data},status=status.HTTP_200_OK)
 
 class MapDetailView(views.APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     def get(self,request,pk):
         map = get_object_or_404(Map,id=pk)
         serializers = MapDetailSerializer(map,context={'request': request})

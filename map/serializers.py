@@ -78,36 +78,45 @@ class MapPatchSerializer(serializers.ModelSerializer):
         return map_instance
     
 class MapDetailSerializer(serializers.ModelSerializer):
-    user=UserSerializer()
-    hashtag=HashtagNameSerializer(many=True)
-    buyers=UserSerializer(many=True)
+    user = UserSerializer()
+    hashtag = HashtagNameSerializer(many=True)
+    buyers = UserSerializer(many=True)
     map_mine = serializers.SerializerMethodField()
     do_buy = serializers.SerializerMethodField()
     recommend_num = serializers.SerializerMethodField()
     recommend = RecommendSimpleSerializer(many=True, source='recom_map')
+
     class Meta:
-        model=Map
-        fields = ['id','name','location','hashtag','img','description','created_at','buyers','user','map_mine','do_buy','recommend_num','recommend']
+        model = Map
+        fields = ['id', 'name', 'location', 'hashtag', 'img', 'description', 'created_at', 'buyers', 'user',
+                  'map_mine', 'do_buy', 'recommend_num', 'recommend']
+
     def get_map_mine(self, obj):
         request = self.context.get('request')
-        if obj.user == request.user:
-            return True
+        if request and request.user:
+            return obj.user == request.user
         return False
+
     def get_do_buy(self, obj):
         request = self.context.get('request')
-        return request.user in obj.buyers.all()
+        if request and request.user:
+            return request.user in obj.buyers.all()
+        return False
+
     def get_recommend_num(self, obj):
-        mapID=obj.id
-        recommendsNum = Recommend.objects.filter(map=mapID).count()
-        return recommendsNum
+        map_id = obj.id
+        recommends_num = Recommend.objects.filter(map=map_id).count()
+        return recommends_num
+
     def get_react_num(self, obj):
-        mapID = obj.id
-        count=0
-        recommends = Recommend.objects.filter(map=mapID)
+        map_id = obj.id
+        count = 0
+        recommends = Recommend.objects.filter(map=map_id)
         for recommend in recommends:
-            recomID=recommend.id
-            count+=React.objects.filter(recommend=recomID).count()
+            recommend_id = recommend.id
+            count += React.objects.filter(recommend=recommend_id).count()
         return count
+
     def get_recommend(self, obj):
         request = self.context.get('request')
         return RecommendSimpleSerializer(many=True, source='recom_map', context={'request': request})
