@@ -52,3 +52,5 @@ class React(TimeStamp):
 class Alert(TimeStamp):
     user = models.ForeignKey(User, related_name='alert_user',on_delete=models.CASCADE)
     recommend = models.ForeignKey(Recommend,related_name='alert_recom',on_delete=models.CASCADE)
+    viewuser = models.ForeignKey(User, related_name='viewuser',on_delete=models.CASCADE)
+    type=models.CharField(max_length=10,null=True)

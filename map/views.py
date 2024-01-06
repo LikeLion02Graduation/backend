@@ -64,8 +64,10 @@ class MyBuyMapView(views.APIView):
         user=request.user
         all_maps = Map.objects.all()
         maps_list = all_maps.filter(buyers=user.pk)
-        if order=="추천순":
-            maps = maps_list.annotate(recommend_count=Count('recom_map')).order_by('-recommend_count')
+        # if order=="추천순":
+        #     maps = maps_list.annotate(recommend_count=Count('recom_map')).order_by('-recommend_count')
+        if order=="오래된순":
+            maps = maps_list.order_by('created_at')
         else:
             maps = maps_list.order_by('-created_at')
         serializer = MapListSerializer(maps, many=True)
