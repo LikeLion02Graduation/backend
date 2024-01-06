@@ -89,11 +89,14 @@ class RecommendDetailSerializer(serializers.ModelSerializer):
     place=PlaceSerializer(many=True)
     # react=ReactminiSerializer(source='recom_map')
     nickname=serializers.SerializerMethodField()
+    mapname=serializers.SerializerMethodField()
     class Meta:
         model = Recommend
-        fields=['id','title','content','nickname','hashtag','place']
+        fields=['id','title','content','nickname','hashtag','place','mapname']
     def get_nickname(self, obj):
         return obj.user.nickname
+    def get_mapname(self, obj):
+        return obj.map.name
     
 class RecommendSerializer(serializers.ModelSerializer):
     class Meta:
