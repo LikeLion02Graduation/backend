@@ -1,4 +1,4 @@
-from django.shortcuts import render,redirect
+from django.shortcuts import render,redirect,get_object_or_404
 from django.http import JsonResponse
 from rest_framework import views
 from rest_framework import status
@@ -27,6 +27,7 @@ KAKAO_CONFIG = {
     "KAKAO_REST_API_KEY":getattr(MyMap.settings.base, 'KAKAO_CLIENT_ID', None),
     # "KAKAO_REDIRECT_URI": "https://nae-chin-man.link/accounts/kakao/callback/",
     "KAKAO_REDIRECT_URI": "http://localhost:3000/accounts/kakao/callback",
+    # "KAKAO_REDIRECT_URI": "http://127.0.0.1:8000/accounts/kakao/callback",
     "KAKAO_CLIENT_SECRET_KEY": getattr(MyMap.settings.base, 'KAKAO_CLIENT_SECRET_KEY', None), 
     "KAKAO_PW":getattr(MyMap.settings.base, 'KAKAO_PW', None),
 }
@@ -96,7 +97,7 @@ class KakaoCallbackView(views.APIView):
 
         properties = user_info_json.get('properties')
         nickname=properties.get('nickname')
-        profile=properties.get('thumbnail_image_url')
+        profile=properties.get('profile_image')
         print(user_info_json)
 
         # 회원가입 및 로그인 처리 
@@ -162,3 +163,24 @@ class MyProfileView(views.APIView):
         return Response({'message': '유효하지 않은 데이터입니다.', 'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
     
 
+class DelUserView(views.APIView):
+    permission_classes = [IsAuthenticated]
+    def delete(self, request):
+        user = request.user  
+
+        try:
+            user.delete()
+            return Response({'message': '회원탈퇴 완료'}, status=status.HTTP_204_NO_CONTENT)
+        except Exception as e:
+            return Response({'detail': f'오류 발생: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class DuplicateIDView(views.APIView):
+    def get(self, request):
+        username = request.data.get('username')
+
+        if User.objects.filter(username=username).exists():
+            response_data = {'duplicate':True}
+        else:
+            response_data = {'duplicate':False}
+        
+        return Response(response_data, status=status.HTTP_200_OK)

@@ -1,3 +1,76 @@
-from django.shortcuts import render
-
+from django.shortcuts import render, get_object_or_404
+from rest_framework import views
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny
+from .serializers import *
+from django.db.models import Count
+from map.models import *
 # Create your views here.
+
+
+
+class AlertView(views.APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self,request):
+        userID=request.user.id
+        alerts = Alert.objects.filter(user=userID).order_by('-created_at')
+        
+        serializer = AlertSerializer(alerts, many=True)
+        return Response({'message':'알림 조회 성공','data':serializer.data},status=status.HTTP_200_OK)
+
+class AlertDeleteView(views.APIView):
+    permission_classes = [IsAuthenticated]
+    def delete(self,request,pk):
+        alert = get_object_or_404(Alert, id=pk)
+        
+        if request.user != alert.user:
+            return Response({'message': '이 알림을 지울 권한이 없습니다'}, status=status.HTTP_403_FORBIDDEN)
+
+        # Perform the delete operation
+        alert.delete()
+
+        return Response({'message':'알림 삭제 성공'},status=status.HTTP_200_OK)
+    
+
+class ReactView(views.APIView):
+    def get(self,request,pk):
+        try:
+            react=get_object_or_404(React,recommend=pk)
+            serializer = ReactSerializer(react,context={'request': request})
+            return Response({'message':'추천 반응 조회 성공','data':serializer.data},status=status.HTTP_200_OK)
+        except:
+            recom=get_object_or_404(Recommend,id=pk)
+            print(request.user)
+            print(recom.map.user.id)
+            if recom.map.user.id == request.user.id: mapmine=True
+            else: mapmine=False
+            return Response({'message':'추천 반응이 없습니다',"data":{"mine":mapmine}},status=status.HTTP_200_OK)
+    def post(self,request,pk):
+        request.data['recommend']=pk
+        request.data['user'] = request.user.id
+        serializer=ReactCreateSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message':'추천 반응 남기기 성공','data':serializer.data}, status=status.HTTP_201_CREATED)
+        return Response({'message':'추천 반응 남기기 실패','error':serializer.errors},status=status.HTTP_400_BAD_REQUEST)
+    def patch(self,request,pk):
+        # request.data['recommend']=pk
+        # request.data['user'] = request.user.id
+
+        # recom=get_object_or_404(Recommend,id=pk)
+        react = get_object_or_404(React, recommend=pk)
+        self.check_object_permissions(self.request, react)
+        for key, value in request.data.items():
+            setattr(react, key, value)
+        react.save()
+        serializer = ReactCreateSerializer(react)
+        return Response({'message':'추천 반응 수정 성공','data':serializer.data},status=status.HTTP_200_OK)
+
+class OtherMapsView(views.APIView):
+    def get(self,request):
+        key= request.GET.get('key')
+        maps=Map.objects.filter(location=key).order_by('-created_at')
+        serializers = MapSerializer(maps,many=True)
+        return Response({'message':'추천 콘텐츠 list 조회 성공','data':serializers.data},status=status.HTTP_200_OK)
