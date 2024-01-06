@@ -48,11 +48,21 @@ class ReactView(views.APIView):
             else: mapmine=False
             return Response({'message':'추천 반응이 없습니다',"data":{"mine":mapmine}},status=status.HTTP_200_OK)
     def post(self,request,pk):
+        recom=get_object_or_404(Recommend,id=pk)
         request.data['recommend']=pk
         request.data['user'] = request.user.id
         serializer=ReactCreateSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
+            alert_data={
+                "user":recom.user.id,
+                "recommend":pk,
+                "viewuser":request.user.id,
+                "type":"반응"
+            }
+            alertSerializer=AlertCreateSerializer(data=alert_data)
+            if alertSerializer.is_valid():
+                alertSerializer.save()
             return Response({'message':'추천 반응 남기기 성공','data':serializer.data}, status=status.HTTP_201_CREATED)
         return Response({'message':'추천 반응 남기기 실패','error':serializer.errors},status=status.HTTP_400_BAD_REQUEST)
     def patch(self,request,pk):
