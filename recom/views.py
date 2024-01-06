@@ -71,6 +71,6 @@ class ReactView(views.APIView):
 class OtherMapsView(views.APIView):
     def get(self,request):
         key= request.GET.get('key')
-        maps=Map.objects.filter(location=key)
+        maps=Map.objects.filter(location=key).order_by('-created_at')
         serializers = MapSerializer(maps,many=True)
         return Response({'message':'추천 콘텐츠 list 조회 성공','data':serializers.data},status=status.HTTP_200_OK)

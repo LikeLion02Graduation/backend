@@ -26,8 +26,8 @@ BASE_URL = 'https://nae-chin-man.link/'
 KAKAO_CONFIG = {
     "KAKAO_REST_API_KEY":getattr(MyMap.settings.base, 'KAKAO_CLIENT_ID', None),
     # "KAKAO_REDIRECT_URI": "https://nae-chin-man.link/accounts/kakao/callback/",
-    # "KAKAO_REDIRECT_URI": "http://localhost:3000/accounts/kakao/callback",
-    "KAKAO_REDIRECT_URI": "http://127.0.0.1:8000/accounts/kakao/callback",
+    "KAKAO_REDIRECT_URI": "http://localhost:3000/accounts/kakao/callback",
+    # "KAKAO_REDIRECT_URI": "http://127.0.0.1:8000/accounts/kakao/callback",
     "KAKAO_CLIENT_SECRET_KEY": getattr(MyMap.settings.base, 'KAKAO_CLIENT_SECRET_KEY', None), 
     "KAKAO_PW":getattr(MyMap.settings.base, 'KAKAO_PW', None),
 }
