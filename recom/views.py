@@ -48,11 +48,21 @@ class ReactView(views.APIView):
             else: mapmine=False
             return Response({'message':'추천 반응이 없습니다',"data":{"mine":mapmine}},status=status.HTTP_200_OK)
     def post(self,request,pk):
+        recom=get_object_or_404(Recommend,id=pk)
         request.data['recommend']=pk
         request.data['user'] = request.user.id
         serializer=ReactCreateSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
+            alert_data={
+                "user":recom.user.id,
+                "recommend":pk,
+                "viewuser":request.user.id,
+                "type":"반응"
+            }
+            alertSerializer=AlertCreateSerializer(data=alert_data)
+            if alertSerializer.is_valid():
+                alertSerializer.save()
             return Response({'message':'추천 반응 남기기 성공','data':serializer.data}, status=status.HTTP_201_CREATED)
         return Response({'message':'추천 반응 남기기 실패','error':serializer.errors},status=status.HTTP_400_BAD_REQUEST)
     def patch(self,request,pk):
@@ -74,3 +84,58 @@ class OtherMapsView(views.APIView):
         maps=Map.objects.filter(location=key).order_by('-created_at')
         serializers = MapSerializer(maps,many=True)
         return Response({'message':'추천 콘텐츠 list 조회 성공','data':serializers.data},status=status.HTTP_200_OK)
+
+class RecommendDetailView(views.APIView):
+    def get(self,request,pk):
+        recom=get_object_or_404(Recommend,id=pk)
+        serializer = RecommendDetailSerializer(recom)
+        return Response({'message':'추천 상세 조회 성공','data':serializer.data},status=status.HTTP_200_OK)
+    def delete(self,request,pk):
+        recom=get_object_or_404(Recommend,id=pk)
+        recom.delete()
+        return Response({'message':'추천 삭제 성공'},status=status.HTTP_200_OK)
+    
+class RecommendCreateView(views.APIView):
+    def post(self,request):
+        data = request.data
+
+        map = data.get('map_id')
+        mapObj = Map.objects.get(id=map)
+        title = data.get('title')
+        content = data.get('content')
+        user = request.user.id
+        
+        places_data = data.get('place', [])
+        hashtags_data = data.get('hashtag', [])
+
+        recommend = Recommend.objects.create(
+                user_id=user,
+                map=mapObj,
+                title=title,
+                content=content
+            )
+
+        for place_data in places_data:
+                place, created = Place.objects.get_or_create(
+                    name=place_data['name'],
+                    address=place_data['address'],
+                    link=place_data['link']
+                )
+                recommend.place.add(place)
+        for hashtag in hashtags_data:
+                hashtag = get_object_or_404(Hashtag,tagname=hashtag)
+                recommend.hashtag.add(hashtag)
+        serializer = RecommendSerializer(recommend)
+        
+        alert_data={
+            "user": mapObj.user.id,
+            "recommend":recommend.id,
+            "viewuser":request.user.id,
+            "type":"추천"
+        }
+        alertSerializer=AlertCreateSerializer(data=alert_data)
+        if alertSerializer.is_valid():
+            alertSerializer.save()
+            return Response({'message': '추천 작성 성공', 'data': serializer.data}, status=status.HTTP_201_CREATED)
+        return Response({'message':'추천 작성 실패','error':serializer.errors},status=status.HTTP_400_BAD_REQUEST)
+
