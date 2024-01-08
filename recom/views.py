@@ -42,8 +42,6 @@ class ReactView(views.APIView):
             return Response({'message':'추천 반응 조회 성공','data':serializer.data},status=status.HTTP_200_OK)
         except:
             recom=get_object_or_404(Recommend,id=pk)
-            print(request.user)
-            print(recom.map.user.id)
             if recom.map.user.id == request.user.id: mapmine=True
             else: mapmine=False
             return Response({'message':'추천 반응이 없습니다',"data":{"mine":mapmine}},status=status.HTTP_200_OK)
