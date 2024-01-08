@@ -7,11 +7,17 @@ from rest_framework.permissions import AllowAny
 from .serializers import *
 from django.db.models import Count
 from .permissions import *
+from .storages import FileUpload, s3_client
 # Create your views here.
 
 class MapView(views.APIView):
     permission_classes = [IsAuthenticated]
     def post(self, request):
+        file = request.FILES.get('img')
+        folder = 'map_img'
+
+        request.data.pop('img')
+
         hashtags = request.data['hashtag']
         request.data['user'] = request.user.id
         request=request.data
@@ -19,7 +25,8 @@ class MapView(views.APIView):
         serializer = MapCreateSerializer(data=request)
 
         if serializer.is_valid():
-            newmap=serializer.save()
+            file_url = FileUpload(s3_client).upload(file, folder)
+            newmap=serializer.save(img=file_url)
             for hashtag in hashtags:
                 hashtagID = get_object_or_404(Hashtag, tagname=hashtag).id
                 newmap.hashtag.add(hashtagID)

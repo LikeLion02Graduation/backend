@@ -20,21 +20,26 @@ class MapSerializer(serializers.ModelSerializer):
         fields = ['id','name']
 
 class AlertSerializer(serializers.ModelSerializer):
-    id = serializers.SerializerMethodField()
+    alert_id = serializers.SerializerMethodField()
+    recom_id = serializers.SerializerMethodField()
     user = serializers.SerializerMethodField()
     map = serializers.SerializerMethodField()
 
     class Meta:
         model = Alert
-        fields = ['id', 'type', 'user', 'map', 'created_at']
-
-    def get_id(self, obj):
+        fields = ['alert_id','recom_id', 'type', 'user', 'map', 'created_at']
+    def get_alert_id(self, obj):
+        return obj.pk
+    def get_recom_id(self, obj):
         return obj.recommend.pk
     def get_user(self, obj):
         return UserSerializer(obj.viewuser).data
     def get_map(self, obj):
         map=get_object_or_404(Map,id= obj.recommend.map.id)
         return MapSerializer(map).data
+    def get_created_at(self, obj):
+        return obj.created_at.strftime('%y.%m.%d %H:%M')
+
 class AlertCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Alert
@@ -44,14 +49,17 @@ class AlertCreateSerializer(serializers.ModelSerializer):
 class ReactSerializer(serializers.ModelSerializer):
     user = UserMiniSerializer()
     mine = serializers.SerializerMethodField()
+    map_name = serializers.SerializerMethodField()
     class Meta:
         model=React
-        fields = ['emoji','content','user','mine']
+        fields = ['emoji','content','user','mine','map_name']
     def get_mine(self, obj):
         request = self.context.get('request')
         if obj.recommend.map.user.id == request.user.id:
             return True
         return False
+    def get_map_name(self, obj):
+        return obj.recommend.map.name
     
 class ReactCreateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -90,13 +98,16 @@ class RecommendDetailSerializer(serializers.ModelSerializer):
     # react=ReactminiSerializer(source='recom_map')
     nickname=serializers.SerializerMethodField()
     mapname=serializers.SerializerMethodField()
+    mapimg=serializers.SerializerMethodField()
     class Meta:
         model = Recommend
-        fields=['id','title','content','nickname','hashtag','place','mapname']
-    def get_nickname(self, obj):
+        fields=['id','title','content','nickname','hashtag','place','mapname','mapimg']
+    def get_nickname(self, obj):  
         return obj.user.nickname
     def get_mapname(self, obj):
         return obj.map.name
+    def get_mapimg(self, obj):
+        return obj.map.img
     
 class RecommendSerializer(serializers.ModelSerializer):
     class Meta:

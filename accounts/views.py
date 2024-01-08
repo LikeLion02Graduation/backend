@@ -10,6 +10,7 @@ from .models import *
 from .serializers import *
 import json
 from rest_framework.permissions import IsAuthenticated
+from map.storages import FileUpload, s3_client
 
 
 from rest_auth.registration.views import SocialLoginView                   
@@ -26,8 +27,8 @@ BASE_URL = 'https://nae-chin-man.link/'
 KAKAO_CONFIG = {
     "KAKAO_REST_API_KEY":getattr(MyMap.settings.base, 'KAKAO_CLIENT_ID', None),
     # "KAKAO_REDIRECT_URI": "https://nae-chin-man.link/accounts/kakao/callback/",
-    "KAKAO_REDIRECT_URI": "http://localhost:3000/accounts/kakao/callback",
-    # "KAKAO_REDIRECT_URI": "http://127.0.0.1:8000/accounts/kakao/callback",
+    # "KAKAO_REDIRECT_URI": "http://localhost:3000/accounts/kakao/callback",
+    "KAKAO_REDIRECT_URI": "http://127.0.0.1:8000/accounts/kakao/callback",
     "KAKAO_CLIENT_SECRET_KEY": getattr(MyMap.settings.base, 'KAKAO_CLIENT_SECRET_KEY', None), 
     "KAKAO_PW":getattr(MyMap.settings.base, 'KAKAO_PW', None),
 }
@@ -134,9 +135,17 @@ class KakaoCallbackView(views.APIView):
         
 class SignUpView(views.APIView):
     def post(self,request):
+        file = request.FILES.get('profile')
+        folder = 'profile_img'
+
+        request.data.pop('profile')
+
+        
         serializer=SignUpSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()               
+            file_url = FileUpload(s3_client).upload(file, folder)
+
+            serializer.save(profile=file_url)               
             return Response({'message':'회원가입 성공','data':serializer.data}, status=status.HTTP_201_CREATED)
         return Response({'message':'회원가입 실패','error':serializer.errors},status=status.HTTP_400_BAD_REQUEST)
 
