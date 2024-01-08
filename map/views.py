@@ -130,3 +130,15 @@ class cityView(views.APIView):
                     }
         result = {"city": city, "cities": cityList[city]}
         return Response({'message': '도시 조회 성공', 'data': result}, status=status.HTTP_200_OK)
+
+class imgtestView(views.APIView):
+    def post(self, request):
+        file = request.FILES.get('img')
+        folder = 'test_img'
+
+
+        file_url = FileUpload(s3_client).upload(file, folder)
+        print(file_url)
+
+        return Response({'message':'이미지 업로드 ㅌㅔ스트 성공','data':file_url})
+    
