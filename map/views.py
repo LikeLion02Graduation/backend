@@ -28,7 +28,10 @@ class MapView(views.APIView):
             if serializer.is_valid():
                 file_url = FileUpload(s3_client).upload(file, folder)
                 # print(file_url)
-                newmap=serializer.save(img=file_url)
+                newmap=serializer.save()   
+                newmap.profile = file_url
+                newmap.save() 
+
                 for hashtag in hashtags:
                     hashtagID = get_object_or_404(Hashtag, tagname=hashtag).id
                     newmap.hashtag.add(hashtagID)
@@ -63,6 +66,19 @@ class MapView(views.APIView):
 class MapPatchView(views.APIView):
     permission_classes = [IsOwner]
     def patch(self,request):
+        if 'img' in request.data:
+            mapid = request.data['id']
+            map = get_object_or_404(Map, id=mapid)
+            file = request.FILES.get('img')
+            folder = 'map_img'
+
+            request.data.pop('img')
+
+            file_url = FileUpload(s3_client).upload(file, folder)
+
+            map.profile = file_url
+            map.save() 
+
         mapid = request.data['id']
         map = get_object_or_404(Map, id=mapid)
         self.check_object_permissions(self.request, map)

@@ -27,8 +27,8 @@ BASE_URL = 'https://nae-chin-man.link/'
 KAKAO_CONFIG = {
     "KAKAO_REST_API_KEY":getattr(MyMap.settings.base, 'KAKAO_CLIENT_ID', None),
     # "KAKAO_REDIRECT_URI": "https://nae-chin-man.link/accounts/kakao/callback/",
-    # "KAKAO_REDIRECT_URI": "http://localhost:3000/accounts/kakao/callback",
-    "KAKAO_REDIRECT_URI": "http://127.0.0.1:8000/accounts/kakao/callback",
+    "KAKAO_REDIRECT_URI": "http://localhost:3000/accounts/kakao/callback",
+    # "KAKAO_REDIRECT_URI": "http://127.0.0.1:8000/accounts/kakao/callback",
     "KAKAO_CLIENT_SECRET_KEY": getattr(MyMap.settings.base, 'KAKAO_CLIENT_SECRET_KEY', None), 
     "KAKAO_PW":getattr(MyMap.settings.base, 'KAKAO_PW', None),
 }
@@ -135,19 +135,29 @@ class KakaoCallbackView(views.APIView):
         
 class SignUpView(views.APIView):
     def post(self,request):
-        file = request.FILES.get('profile')
-        folder = 'profile_img'
+        if 'profile' in request.data:
+            file = request.FILES.get('profile')
 
-        request.data.pop('profile')
+            request.data.pop('profile')
 
-        
-        serializer=SignUpSerializer(data=request.data)
-        if serializer.is_valid():
-            file_url = FileUpload(s3_client).upload(file, folder)
+            serializer=SignUpSerializer(data=request.data)
+            if serializer.is_valid():
+                file_url = FileUpload(s3_client).upload(file, 'profile_img')
 
-            serializer.save(profile=file_url)               
-            return Response({'message':'회원가입 성공','data':serializer.data}, status=status.HTTP_201_CREATED)
-        return Response({'message':'회원가입 실패','error':serializer.errors},status=status.HTTP_400_BAD_REQUEST)
+                seri=serializer.save()   
+                seri.profile = file_url
+                seri.save() 
+
+                return Response({'message':'회원가입 성공, 프로필 사진 존재','data':serializer.data}, status=status.HTTP_201_CREATED)
+            return Response({'message':'회원가입 실패, 프로필 사진 존재','error':serializer.errors},status=status.HTTP_400_BAD_REQUEST)
+        else:
+            serializer=SignUpSerializer(data=request.data)
+            if serializer.is_valid():
+                seri=serializer.save()   
+
+                return Response({'message':'회원가입 성공, 프로필 사진 없음','data':serializer.data}, status=status.HTTP_201_CREATED)
+            return Response({'message':'회원가입 실패, 프로필 사진 없음','error':serializer.errors},status=status.HTTP_400_BAD_REQUEST)
+
 
     
 class LoginView(views.APIView):
@@ -164,12 +174,21 @@ class MyProfileView(views.APIView):
         serializer = UserProfileSerializer(request.user)
         return Response({'message': '카카오 로그인 완료, 이름 바꾸기 페이지', 'data': serializer.data}, status=status.HTTP_200_OK)
     def patch(self, request):
-        serializer = UserProfileSimpleSerializer(request.user, data=request.data, partial=True)
+        user = request.user
+        if 'profile' in request.data:
+            file = request.FILES.get('profile')
 
-        if serializer.is_valid():
-            serializer.save()
-            return Response({'message': '정보 변경 성공', 'data': serializer.data}, status=status.HTTP_200_OK)
-        return Response({'message': '유효하지 않은 데이터입니다.', 'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            request.data.pop('profile')
+
+            file_url = FileUpload(s3_client).upload(file, 'profile_img')
+
+            user.profile = file_url
+            user.save()
+        if 'nickname' in request.data:
+            user.nickname = request.data['nickname']
+            user.save() 
+        serializer=UserProfileSerializer(user)
+        return Response({'message': '정보 변경 성공', 'data': serializer.data}, status=status.HTTP_200_OK)
     
 
 class DelUserView(views.APIView):
