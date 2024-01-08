@@ -11,4 +11,5 @@ urlpatterns = [
     path('detail/<int:pk>/',MapDetailView.as_view()),
     path('newtag/',NewTagView.as_view()),
     path('city/',cityView.as_view()),
+    path('imgtest/',imgtestView.as_view()),
 ]
