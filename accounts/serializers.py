@@ -8,30 +8,12 @@ from io import BytesIO
 class SignUpSerializer(serializers.ModelSerializer):            # 유저 시리얼라이저
     class Meta:
         model=User
-        fields=['id','username','password','nickname','profile']
-    def img_resize(self, profile: InMemoryUploadedFile) -> InMemoryUploadedFile:
-        pil_img = Image.open(profile).convert('RGBA')
-        # pil_img = pil_img.resize((1000,1000))
-
-        new_img_io = BytesIO()
-        pil_img.save(new_img_io, format='PNG')
-        result = InMemoryUploadedFile(
-            new_img_io,
-            'ImageField',
-            profile.name,
-            'image/png',
-            new_img_io.getbuffer().nbytes,
-            profile.charset
-        )
-
-        return result
+        fields=['id','username','password','nickname']
 
     def create(self, validated_data):  
-        result = self.img_resize(validated_data['profile'])
         user = User.objects.create(
             username=validated_data['username'],
-            nickname=validated_data['nickname'],
-            profile=result
+            nickname=validated_data['nickname']
         )
         user.set_password(validated_data['password'])
         user.save()
