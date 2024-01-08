@@ -20,6 +20,11 @@ AUTH_USER_MODEL = 'accounts.User'
 # import pymysql  
 # pymysql.install_as_MySQLdb()
 
+TIME_ZONE = 'Asia/Seoul'
+USE_TZ = True
+USE_L10N = False
+
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 env = environ.Env(
     DEBUG=(bool, False)
@@ -73,6 +78,8 @@ INSTALLED_APPS = [
     "recom",
     "map",
 
+    'storages',
+
     
 
 ]
@@ -80,6 +87,7 @@ INSTALLED_APPS = [
 SITE_ID = 1
 
 REST_FRAMEWORK = {
+    'DATETIME_FORMAT': '%y.%m.%d %H:%M',
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
@@ -134,7 +142,7 @@ ROOT_URLCONF = "MyMap.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / 'templates'],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -185,11 +193,11 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'ko-KR'
 
-TIME_ZONE = 'Asia/Seoul'
+# TIME_ZONE = 'Asia/Seoul'
 
-USE_I18N = True
+# USE_I18N = True
 
-USE_TZ = True
+# USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
@@ -198,6 +206,35 @@ USE_TZ = True
 # STATIC_URL = '/static/'
 # STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 # STATIC_ROOT = os.path.join('staticfiles')
+
+# =============================================================
+
+AWS_REGION = 'ap-northeast-2'
+# AWS_STORAGE_BUCKET_NAME = '[버킷 이름]'
+# AWS_ACCESS_KEY_ID = '[액세스 키 ID]'
+# AWS_SECRET_ACCESS_KEY = '[액세스 키]'
+
+# AWS_S3_CUSTOM_DOMAIN = '%s.s3.%s.amazonaws.com' % (AWS_STORAGE_BUCKET_NAME, AWS_REGION)
+
+# STATIC_URL = "http://%s/static/" % AWS_S3_CUSTOM_DOMAIN
+# STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+
+# MEDIA_URL = "http://%s/media/" % AWS_S3_CUSTOM_DOMAIN
+# DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+# AWS_S3_FILE_OVERWRITE = False
+# AWS_QUERYSTRING_AUTH = False
+
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+AWS_S3_SECURE_URLS = False       # use http instead of https
+AWS_QUERYSTRING_AUTH = False     # don't add complex authentication-related query parameters for requests
+
+AWS_ACCESS_KEY_ID = env('AWS_S3_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = env('AWS_S3_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME')
+
+
 STATIC_URL = "static/"
 STATICFILES_DIRS = [
     BASE_DIR / "static",
