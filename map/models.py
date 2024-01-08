@@ -21,8 +21,8 @@ class Map(TimeStamp):
     name = models.CharField(max_length=100)
     location = models.CharField(max_length=20)
     hashtag = models.ManyToManyField(Hashtag,related_name='map_hashtag',blank=True)
-    img =  models.TextField()
-    description = models.TextField()
+    img =  models.TextField(null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
     buyers = models.ManyToManyField(User,related_name='buyers',blank=True)
     def __str__(self):
         return str(self.id)+" "+self.name+" - "+self.user.nickname

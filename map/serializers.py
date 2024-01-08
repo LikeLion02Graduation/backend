@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.shortcuts import render,get_object_or_404
 from .models import *
 from accounts.models import *
+from django.utils import timezone
 
 class MapCreateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -59,6 +60,8 @@ class MapListSerializer(serializers.ModelSerializer):
             recomID=recommend.id
             count+=React.objects.filter(recommend=recomID).count()
         return count
+    def get_created_at(self, obj):
+        return obj.created_at.strftime('%y.%m.%d %H:%M')
     
 class MapPatchSerializer(serializers.ModelSerializer):
     hashtag = HashtagNameSerializer(many=True)
@@ -120,3 +123,6 @@ class MapDetailSerializer(serializers.ModelSerializer):
     def get_recommend(self, obj):
         request = self.context.get('request')
         return RecommendSimpleSerializer(many=True, source='recom_map', context={'request': request})
+    
+    def get_created_at(self, obj):
+        return obj.created_at.strftime('%y.%m.%d %H:%M')
