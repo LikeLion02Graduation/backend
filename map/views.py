@@ -13,24 +13,39 @@ from .storages import FileUpload, s3_client
 class MapView(views.APIView):
     permission_classes = [IsAuthenticated]
     def post(self, request):
-        file = request.FILES.get('img')
-        folder = 'map_img'
+        if 'img' in request.data:
+            file = request.FILES.get('img')
+            folder = 'map_img'
 
-        request.data.pop('img')
+            request.data.pop('img')
+            
+            hashtags = request.data['hashtag']
+            request.data['user'] = request.user.id
+            request=request.data
+            request.pop('hashtag')
+            serializer = MapCreateSerializer(data=request)
 
-        hashtags = request.data['hashtag']
-        request.data['user'] = request.user.id
-        request=request.data
-        request.pop('hashtag')
-        serializer = MapCreateSerializer(data=request)
+            if serializer.is_valid():
+                file_url = FileUpload(s3_client).upload(file, folder)
+                # print(file_url)
+                newmap=serializer.save(img=file_url)
+                for hashtag in hashtags:
+                    hashtagID = get_object_or_404(Hashtag, tagname=hashtag).id
+                    newmap.hashtag.add(hashtagID)
+                return Response({'message':'내 지도 생성 성공, 이미지 업로드 완료','data':serializer.data}, status=status.HTTP_201_CREATED)
+        else:
+            hashtags = request.data['hashtag']
+            request.data['user'] = request.user.id
+            request=request.data
+            request.pop('hashtag')
+            serializer = MapCreateSerializer(data=request)
+            if serializer.is_valid():
+                newmap=serializer.save()
+                for hashtag in hashtags:
+                    hashtagID = get_object_or_404(Hashtag, tagname=hashtag).id
+                    newmap.hashtag.add(hashtagID)
+                return Response({'message':'내 지도 생성 성공, 이미지 없음','data':serializer.data}, status=status.HTTP_201_CREATED)
 
-        if serializer.is_valid():
-            file_url = FileUpload(s3_client).upload(file, folder)
-            newmap=serializer.save(img=file_url)
-            for hashtag in hashtags:
-                hashtagID = get_object_or_404(Hashtag, tagname=hashtag).id
-                newmap.hashtag.add(hashtagID)
-            return Response({'message':'내 지도 생성 성공','data':serializer.data}, status=status.HTTP_201_CREATED)
         return Response({'message':'내 지도 생성 실패','error':serializer.errors},status=status.HTTP_400_BAD_REQUEST)
     def get(self,request):
         order= request.GET.get('order')
