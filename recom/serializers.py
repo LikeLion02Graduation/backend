@@ -74,6 +74,7 @@ class HashtagNameSerializer(serializers.ModelSerializer):
 class MapSerializer(serializers.ModelSerializer):
     hashtag = HashtagNameSerializer(many=True)
     recom_num = serializers.SerializerMethodField()
+    user=UserMiniSerializer()
     class Meta:
         model = Map
         fields = ['id', 'name', 'location', 'img', 'user', 'hashtag', 'recom_num']
