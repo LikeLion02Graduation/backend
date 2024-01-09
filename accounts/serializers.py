@@ -19,7 +19,22 @@ class SignUpSerializer(serializers.ModelSerializer):            # 유저 시리�
         user.save()
 
         return user
-    
+
+class SignUpKaKaoSerializer(serializers.ModelSerializer):            # 유저 시리얼라이저
+    class Meta:
+        model=User
+        fields=['id','username','password','nickname','profile']
+
+    def create(self, validated_data):  
+        user = User.objects.create(
+            username=validated_data['username'],
+            nickname=validated_data['nickname'],
+            profile=validated_data['profile']
+        )
+        user.set_password(validated_data['password'])
+        user.save()
+
+        return user
     
 class UserLoginSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=64)
