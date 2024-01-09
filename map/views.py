@@ -44,6 +44,8 @@ class MapView(views.APIView):
             serializer = MapCreateSerializer(data=request)
             if serializer.is_valid():
                 newmap=serializer.save()
+                newmap.img = "https://nae-chin-man.s3.ap-northeast-2.amazonaws.com/map_img/map_basic.png"
+                newmap.save() 
                 for hashtag in hashtags:
                     hashtagID = get_object_or_404(Hashtag, tagname=hashtag).id
                     newmap.hashtag.add(hashtagID)
