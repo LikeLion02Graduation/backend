@@ -45,6 +45,7 @@ class MapListSerializer(serializers.ModelSerializer):
     hashtag=HashtagNameSerializer(many=True)
     recommend_num = serializers.SerializerMethodField()
     react_num = serializers.SerializerMethodField()
+    user=UserSerializer()
     class Meta:
         model=Map
         fields = ['id','user','name','location','hashtag','img','description','created_at','recommend_num','react_num']

@@ -11,7 +11,7 @@ from .serializers import *
 import json
 from rest_framework.permissions import IsAuthenticated
 from map.storages import FileUpload, s3_client
-
+import random
 
 from rest_auth.registration.views import SocialLoginView                   
 # from allauth.socialaccount.providers.kakao import views as kakao_views     
@@ -27,8 +27,9 @@ BASE_URL = 'https://nae-chin-man.link/'
 KAKAO_CONFIG = {
     "KAKAO_REST_API_KEY":getattr(MyMap.settings.base, 'KAKAO_CLIENT_ID', None),
     # "KAKAO_REDIRECT_URI": "https://nae-chin-man.link/accounts/kakao/callback/",
-    "KAKAO_REDIRECT_URI": "http://localhost:3000/accounts/kakao/callback",
+    # "KAKAO_REDIRECT_URI": "http://localhost:3000/accounts/kakao/callback",
     # "KAKAO_REDIRECT_URI": "http://127.0.0.1:8000/accounts/kakao/callback",
+    "KAKAO_REDIRECT_URI": "https://naechinman.vercel.app/accounts/kakao/callback",
     "KAKAO_CLIENT_SECRET_KEY": getattr(MyMap.settings.base, 'KAKAO_CLIENT_SECRET_KEY', None), 
     "KAKAO_PW":getattr(MyMap.settings.base, 'KAKAO_PW', None),
 }
@@ -99,7 +100,7 @@ class KakaoCallbackView(views.APIView):
         properties = user_info_json.get('properties')
         nickname=properties.get('nickname')
         profile=properties.get('profile_image')
-        print(user_info_json)
+        print(profile)
 
         # 회원가입 및 로그인 처리 
         try:   
@@ -109,7 +110,10 @@ class KakaoCallbackView(views.APIView):
             data={'username':social_id,'password':social_id}
             serializer = UserLoginSerializer(data=data)
             if serializer.is_valid():
-                return Response({'message': "카카오 로그인 성공", 'data': serializer.validated_data}, status=status.HTTP_200_OK)
+                validated_data = serializer.validated_data
+                validated_data['signup'] = False
+                validated_data['profile'] = user_in_db.profile
+                return Response({'message': "카카오 로그인 성공", 'data': validated_data}, status=status.HTTP_200_OK)
             return Response({'message': "카카오 로그인 실패", 'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         except User.DoesNotExist:   
@@ -117,13 +121,16 @@ class KakaoCallbackView(views.APIView):
             # def post(self,request):
             print("회원가입")
             data={'username':social_id,'password':social_id,'nickname':nickname,'profile':profile}
-            serializer=SignUpSerializer(data=data)  
+            serializer=SignUpKaKaoSerializer(data=data)  
             if serializer.is_valid():
                 serializer.save()                          # 회원가입
                 data1={'username':social_id,'password':social_id}
                 serializer1 = UserLoginSerializer(data=data1)
                 if serializer1.is_valid():
-                    return Response({'message':'카카오 회원가입 성공','data':serializer1.validated_data}, status=status.HTTP_201_CREATED)
+                    validated_data = serializer1.validated_data
+                    validated_data['signup'] = True
+                    validated_data['profile'] = profile
+                    return Response({'message':'카카오 회원가입 성공','data':validated_data}, status=status.HTTP_201_CREATED)
             return Response({'message':'카카오 회원가입 실패','error':serializer.errors},status=status.HTTP_400_BAD_REQUEST)
     
 
@@ -154,7 +161,9 @@ class SignUpView(views.APIView):
             serializer=SignUpSerializer(data=request.data)
             if serializer.is_valid():
                 seri=serializer.save()   
-
+                random_number = random.randint(1, 6)
+                seri.profile = "https://nae-chin-man.s3.ap-northeast-2.amazonaws.com/profile_img/basic_"+str(random_number)+".png"
+                seri.save() 
                 return Response({'message':'회원가입 성공, 프로필 사진 없음','data':serializer.data}, status=status.HTTP_201_CREATED)
             return Response({'message':'회원가입 실패, 프로필 사진 없음','error':serializer.errors},status=status.HTTP_400_BAD_REQUEST)
 
