@@ -151,7 +151,7 @@ class cityView(views.APIView):
 
 class imgUploadView(views.APIView):
     def post(self, request):
-        file = request.FILES.get('img')
+        file = request.FILES['img']
 
         file_url = FileUpload(s3_client).upload(file, 'map_img')
 
