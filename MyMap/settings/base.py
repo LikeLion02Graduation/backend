@@ -81,7 +81,6 @@ INSTALLED_APPS = [
     "recom",
     "map",
 
-    'storages',
 
     
 
