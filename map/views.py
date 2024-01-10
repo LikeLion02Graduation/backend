@@ -152,11 +152,8 @@ class cityView(views.APIView):
 class imgUploadView(views.APIView):
     def post(self, request):
         file = request.FILES.get('img')
-        folder = 'map_img'
 
-
-        file_url = FileUpload(s3_client).upload(file, folder)
-        print(file_url)
+        file_url = FileUpload(s3_client).upload(file, 'map_img')
 
         return Response({'message':'지도 이미지 업로드 성공','data':file_url})
     
