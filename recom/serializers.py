@@ -49,17 +49,17 @@ class AlertCreateSerializer(serializers.ModelSerializer):
 class ReactSerializer(serializers.ModelSerializer):
     user = UserMiniSerializer()
     mine = serializers.SerializerMethodField()
-    map_name = serializers.SerializerMethodField()
+    recom_name = serializers.SerializerMethodField()
     class Meta:
         model=React
-        fields = ['emoji','content','user','mine','map_name']
+        fields = ['emoji','content','user','mine','recom_name']
     def get_mine(self, obj):
         request = self.context.get('request')
         if obj.recommend.map.user.id == request.user.id:
             return True
         return False
-    def get_map_name(self, obj):
-        return obj.recommend.map.name
+    def get_recom_name(self, obj):
+        return obj.recommend.title
     
 class ReactCreateSerializer(serializers.ModelSerializer):
     class Meta:
