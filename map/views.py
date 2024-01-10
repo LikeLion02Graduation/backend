@@ -163,6 +163,8 @@ class imgUploadView(views.APIView):
 class mapPostNewView(views.APIView):
     permission_classes = [IsAuthenticated]
     def post(self, request):
+        if not 'img' in request.data:
+            request.data['img'] = "https://nae-chin-man.s3.ap-northeast-2.amazonaws.com/map_img/map_basic.png"
         hashtags = request.data['hashtag']
         request.data['user'] = request.user.id
         request=request.data
