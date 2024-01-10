@@ -44,7 +44,7 @@ class ReactView(views.APIView):
             recom=get_object_or_404(Recommend,id=pk)
             if recom.map.user.id == request.user.id: mapmine=True
             else: mapmine=False
-            return Response({'message':'추천 반응이 없습니다',"data":{"mine":mapmine}},status=status.HTTP_200_OK)
+            return Response({'message':'추천 반응이 없습니다',"data":{"mine":mapmine,"map_name":recom.map.name}},status=status.HTTP_200_OK)
     def post(self,request,pk):
         recom=get_object_or_404(Recommend,id=pk)
         request.data['recommend']=pk
