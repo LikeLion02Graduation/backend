@@ -213,7 +213,7 @@ class DelUserView(views.APIView):
 
 class DuplicateIDView(views.APIView):
     def get(self, request):
-        username = request.data.get('username')
+        username = request.GET.get('username')
 
         if User.objects.filter(username=username).exists():
             response_data = {'duplicate':True}
