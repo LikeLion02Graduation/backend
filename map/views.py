@@ -149,14 +149,32 @@ class cityView(views.APIView):
         result = {"city": city, "cities": cityList[city]}
         return Response({'message': '도시 조회 성공', 'data': result}, status=status.HTTP_200_OK)
 
-class imgtestView(views.APIView):
+class imgUploadView(views.APIView):
     def post(self, request):
         file = request.FILES.get('img')
-        folder = 'test_img'
+        folder = 'map_img'
 
 
         file_url = FileUpload(s3_client).upload(file, folder)
         print(file_url)
 
-        return Response({'message':'이미지 업로드 ㅌㅔ스트 성공','data':file_url})
+        return Response({'message':'지도 이미지 업로드 성공','data':file_url})
     
+class mapPostNewView(views.APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        hashtags = request.data['hashtag']
+        request.data['user'] = request.user.id
+        request=request.data
+        request.pop('hashtag')
+        serializer = MapCreateSerializer(data=request)
+
+        if serializer.is_valid():
+            newmap=serializer.save()   
+
+            for hashtag in hashtags:
+                hashtagID = get_object_or_404(Hashtag, tagname=hashtag).id
+                newmap.hashtag.add(hashtagID)
+            return Response({'message':'내 지도 생성 성공','data':serializer.data}, status=status.HTTP_201_CREATED)
+        else:
+            return Response({'message':'내 지도 생성 실패','data':serializer.data}, status=status.HTTP_400_BAD_REQUEST)
