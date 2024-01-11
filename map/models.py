@@ -43,7 +43,7 @@ class Recommend(TimeStamp):
     map = models.ForeignKey(Map, related_name='recom_map',on_delete=models.CASCADE)
 
 class React(TimeStamp):
-    EMOJIS = ((1, 1), (2, 2), (3, 3), (4, 4))
+    EMOJIS = ((0, 0), (1, 1), (2, 2), (3, 3))
     user = models.ForeignKey(User, related_name='react_user',on_delete=models.CASCADE)
     recommend = models.ForeignKey(Recommend,related_name='react_recom',on_delete=models.CASCADE)
     emoji = models.IntegerField(choices=EMOJIS)
